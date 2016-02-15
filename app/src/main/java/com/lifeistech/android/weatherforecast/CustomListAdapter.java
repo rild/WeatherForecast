@@ -15,31 +15,31 @@ import android.widget.TextView;
 import com.lifeistech.android.weatherforecast.models.Weather;
 
 public class CustomListAdapter extends BaseAdapter {
-	 
+
     private ArrayList<Weather> listData;
- 
+
     private LayoutInflater layoutInflater;
- 
+
     public CustomListAdapter(Context context, ArrayList<Weather> listData) {
         this.listData = listData;
         layoutInflater = LayoutInflater.from(context);
     }
- 
+
     @Override
     public int getCount() {
         return listData.size();
     }
- 
+
     @Override
     public Object getItem(int position) {
         return listData.get(position);
     }
- 
+
     @Override
     public long getItemId(int position) {
         return position;
     }
- 
+
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder holder;
         if (convertView == null) {
@@ -53,23 +53,23 @@ public class CustomListAdapter extends BaseAdapter {
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
- 
+
         Weather weather = listData.get(position);
         holder.dayView.setText(new SimpleDateFormat("EEEE dd", Locale.getDefault()).format(weather.day));
         holder.infosView.setText(String.format("%.1f�C / %d", weather.temperature, weather.pressure));
         holder.description.setText(weather.description);
-        
+
         if (weather.iconUri != null)
-			new DownloadImageTask(holder.iconView).execute(weather.iconUri);
-        
+            new DownloadImageTask(holder.iconView).execute(weather.iconUri);
+
         return convertView;
     }
- 
+
     static class ViewHolder {
-		TextView dayView;
-		TextView description;
+        TextView dayView;
+        TextView description;
         TextView infosView;
         ImageView iconView;
     }
- 
+
 }

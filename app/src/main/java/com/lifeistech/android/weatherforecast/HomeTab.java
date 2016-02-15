@@ -27,7 +27,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.lifeistech.android.weatherforecast.models.Weather;
- 
+import com.lifeistech.android.weatherforecast.service.WeatherWebservice;
+
 public class HomeTab extends Fragment implements TabListener, LocationListener {
 	private static final String TAG = "AppWeather";
     private Fragment mFragment;

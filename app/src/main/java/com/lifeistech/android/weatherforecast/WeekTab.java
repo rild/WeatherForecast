@@ -14,7 +14,8 @@ import android.widget.Toast;
 import com.lifeistech.android.weatherforecast.HomeTab.FragmentCallback;
 import com.lifeistech.android.weatherforecast.models.User;
 import com.lifeistech.android.weatherforecast.models.Weather;
- 
+import com.lifeistech.android.weatherforecast.service.WeatherWebservice;
+
 public class WeekTab extends Fragment implements TabListener {
 	private static final String TAG = "AppWeather";
     private Fragment mFragment;
