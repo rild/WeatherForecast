@@ -1,4 +1,4 @@
-package com.lifeistech.android.weatherforecast.service;
+package com.lifeistech.android.weatherforecast.controller.service;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
