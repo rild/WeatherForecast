@@ -8,9 +8,28 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
+import android.widget.TextView;
+
+import com.cookpad.android.rxt4a.schedulers.AndroidSchedulers;
+import com.google.gson.FieldNamingPolicy;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.internal.bind.DateTypeAdapter;
+import com.lifeistech.android.weatherforecast.controller.service.WeatherApi;
+import com.lifeistech.android.weatherforecast.entity.WeatherEntity;
+
+import java.util.Date;
+
+import retrofit.RestAdapter;
+import retrofit.android.AndroidLog;
+import retrofit.converter.GsonConverter;
+import rx.Observer;
+import rx.schedulers.Schedulers;
 
 public class MainActivity extends Activity {
+
 	private Tab tab;
 
 	@Override

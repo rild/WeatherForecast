@@ -2,6 +2,7 @@ package com.lifeistech.android.weatherforecast;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Locale;
 
 import android.app.ActionBar.Tab;
@@ -26,11 +27,25 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.cookpad.android.rxt4a.schedulers.AndroidSchedulers;
+import com.google.gson.FieldNamingPolicy;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.internal.bind.DateTypeAdapter;
+import com.lifeistech.android.weatherforecast.controller.service.WeatherApi;
+import com.lifeistech.android.weatherforecast.entity.WeatherEntity;
 import com.lifeistech.android.weatherforecast.models.Weather;
-import com.lifeistech.android.weatherforecast.service.WeatherWebservice;
+import com.lifeistech.android.weatherforecast.controller.service.WeatherWebservice;
+
+import retrofit.RestAdapter;
+import retrofit.android.AndroidLog;
+import retrofit.converter.GsonConverter;
+import rx.Observer;
+import rx.schedulers.Schedulers;
 
 public class HomeTab extends Fragment implements TabListener, LocationListener {
-	private static final String TAG = "AppWeather";
+	private static final String END_POINT = "http://weather.livedoor.com";
+	private static final String TAG = MainActivity.class.getSimpleName(); //or AppWeather
     private Fragment mFragment;
 	private LocationManager locationManager;
 	private TextView city;
@@ -181,41 +196,86 @@ public class HomeTab extends Fragment implements TabListener, LocationListener {
     	alert.setView(input);
 
     	alert.setPositiveButton(getResources().getString(R.string.alert_search_validate), new DialogInterface.OnClickListener() {
-    		public void onClick(DialogInterface dialog, int whichButton) {
-    			Editable value = input.getText();
-    			
-    			// Get weather data
-    			if (((MainActivity) getActivity()).isOnline()) {
-    				Toast.makeText(getActivity().getApplicationContext(), getResources().getString(R.string.fetching_data), Toast.LENGTH_SHORT).show();
-    				
-    				WeatherWebservice weatherWS = new WeatherWebservice(new FragmentCallback() {
-    		            @Override
-    		            public void onTaskDone(ArrayList<Weather> result) {
-    		                // Update UI
-    		        		if (result.size() > 0 && result.get(0).isFetched) {
-    		        			dayWeather = result.get(0);
-    		        			// Update UI
-    		        			updateUIwithWeather(dayWeather);
-    		        		}
-    		            }
-    		        }, null, true, value.toString());
-    				weatherWS.execute();
-    			} else {
-    				Toast.makeText(getActivity().getApplicationContext(), getResources().getString(R.string.network_error), Toast.LENGTH_SHORT).show();
-    			}
-    		}
-    	});
+			public void onClick(DialogInterface dialog, int whichButton) {
+				Editable value = input.getText();
+
+				// Get weather data
+				if (((MainActivity) getActivity()).isOnline()) {
+					Toast.makeText(getActivity().getApplicationContext(), getResources().getString(R.string.fetching_data), Toast.LENGTH_SHORT).show();
+
+					WeatherWebservice weatherWS = new WeatherWebservice(new FragmentCallback() {
+						@Override
+						public void onTaskDone(ArrayList<Weather> result) {
+							// Update UI
+							if (result.size() > 0 && result.get(0).isFetched) {
+								dayWeather = result.get(0);
+								// Update UI
+								updateUIwithWeather(dayWeather);
+							}
+						}
+					}, null, true, value.toString());
+					weatherWS.execute();
+				} else {
+					Toast.makeText(getActivity().getApplicationContext(), getResources().getString(R.string.network_error), Toast.LENGTH_SHORT).show();
+				}
+			}
+		});
 
     	alert.setNegativeButton(getResources().getString(R.string.alert_search_cancel), new DialogInterface.OnClickListener() {
-    	  public void onClick(DialogInterface dialog, int whichButton) {
-    	    // Canceled.
-    	  }
-    	});
+			public void onClick(DialogInterface dialog, int whichButton) {
+				// Canceled.
+			}
+		});
 
     	alert.show();
 	}
-	
-    public interface FragmentCallback {
+
+	public void retrofitConnect() {
+		Gson gson = new GsonBuilder()
+				.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+				.registerTypeAdapter(Date.class, new DateTypeAdapter())
+				.create();
+
+
+		// RestAdapterを作成する
+		RestAdapter adapter = new RestAdapter.Builder()
+				.setEndpoint(END_POINT)
+				.setConverter(new GsonConverter(gson))
+				.setLogLevel(RestAdapter.LogLevel.FULL)
+				.setLog(new AndroidLog("=NETWORK="))
+				.build();
+
+		// 天気予報情報を取得する
+		//http://weather.livedoor.com/area/forecast/200010
+		WeatherApi api =  adapter.create(WeatherApi.class);
+
+		Observer observer = new Observer<WeatherEntity>() {
+			@Override
+			public void onCompleted() {
+				Log.d(TAG, "onCompleted()");
+				//必要な情報を取り出して画面に表示してください。
+			}
+
+			@Override
+			public void onError(Throwable e) {
+				Log.e(TAG, "Error : " + e.toString());
+			}
+
+			@Override
+			public void onNext(WeatherEntity weather) {
+				Log.d(TAG, "onNext()");
+				city.setText(weather.getPinpointLocations().get(0).getName());
+			}
+		};
+
+		api.getWeather("200010")
+				.subscribeOn(Schedulers.newThread())
+				.observeOn(AndroidSchedulers.mainThread())
+				.subscribe(observer);
+	}
+
+
+	public interface FragmentCallback {
         public void onTaskDone(ArrayList<Weather> result);
     }
 
